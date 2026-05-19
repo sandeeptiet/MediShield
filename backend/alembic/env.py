@@ -1,23 +1,24 @@
 """Alembic migration environment.
 
-Wires Alembic to the SQLAlchemy metadata and uses MYSQL_URL from settings.
+Pulls the SQLAlchemy URL from app settings and the metadata from app.database.Base.
+Importing app.models registers all model classes with that metadata.
 """
 from logging.config import fileConfig
 
 from alembic import context
 from sqlalchemy import engine_from_config, pool
 
-# TODO (Phase 2): import Base from app.database and all model modules so
-# autogenerate picks up table definitions.
-# from app.database import Base
-# from app.models import user, case, audit_log  # noqa: F401
-
-target_metadata = None  # set to Base.metadata in Phase 2
+from app.config import settings
+from app.database import Base
+from app import models  # noqa: F401  — registers User, Case, AIAuditLog on Base.metadata
 
 config = context.config
+config.set_main_option("sqlalchemy.url", settings.mysql_url)
 
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
+
+target_metadata = Base.metadata
 
 
 def run_migrations_offline() -> None:

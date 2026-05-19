@@ -1,5 +1,5 @@
-"""Auth request/response schemas (filled in Phase 2)."""
-from pydantic import BaseModel
+"""Auth request/response schemas."""
+from pydantic import BaseModel, EmailStr
 
 
 class GoogleLoginRequest(BaseModel):
@@ -10,10 +10,16 @@ class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
     expires_in: int
+    user: "UserOut"
 
 
 class UserOut(BaseModel):
     id: int
-    email: str
+    email: EmailStr
     name: str
     role: str
+
+    model_config = {"from_attributes": True}
+
+
+TokenResponse.model_rebuild()

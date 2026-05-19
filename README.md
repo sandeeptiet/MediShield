@@ -92,12 +92,33 @@ npm run dev
 
 App runs at `http://localhost:3000`. Sign in with Google (your email must be pre-seeded in the `users` table).
 
+### Phase 2 sanity test
+
+```bash
+# 1. After backend deps install + alembic upgrade head, seed allowed users:
+#    edit backend/scripts/seed_users.py to add your Gmail with role ADMIN
+cd backend && python -m scripts.seed_users
+
+# 2. Configure Google OAuth client in Google Cloud Console:
+#    Authorized redirect URI: http://localhost:3000/api/auth/callback/google
+#    Copy client_id + client_secret into .env
+
+# 3. Start everything
+docker-compose up -d mysql qdrant
+cd backend && uvicorn app.main:app --reload &
+cd frontend && npm install && npm run dev
+
+# 4. Visit http://localhost:3000 → Sign in with Google
+#    - allowed email   → redirected to /dashboard with name + role
+#    - unknown email   → "Access denied" message on /login
+```
+
 ## Build phases
 
 This project is being built in phases. Current status:
 
 - [x] **Phase 1** — Scaffolding (folder structure, configs, stubs, manifests)
-- [ ] **Phase 2** — Auth + DB (Google OAuth, user/case/audit_log tables, login UI)
+- [x] **Phase 2** — Auth + DB (Google OAuth, user/case/audit_log tables, login UI)
 - [ ] **Phase 3** — Core agent infrastructure (LangGraph state, Claude wrapper, base agent)
 - [ ] **Phase 4** — Individual agents (Classifier → KYC → Claims → Policy RAG → Fraud → Orchestrator)
 - [ ] **Phase 5** — Ingestion API + UI (upload, dashboard, case detail, polling)
