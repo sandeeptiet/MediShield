@@ -8,15 +8,17 @@ from prometheus_client import make_asgi_app
 from app.api.v1.router import api_router
 from app.config import settings
 from app.core.logging import configure_logging, get_logger
+from app.core.tracing import configure_tracing
 
 configure_logging()
+configure_tracing()
 logger = get_logger(__name__)
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info("medishield.startup", model=settings.anthropic_model)
-    # TODO (Phase 3+): warm up embedding model, reranker, Qdrant collection.
+    # TODO (Phase 4+): warm up embedding model, reranker, Qdrant collection.
     yield
     logger.info("medishield.shutdown")
 

@@ -113,13 +113,22 @@ cd frontend && npm install && npm run dev
 #    - unknown email   → "Access denied" message on /login
 ```
 
+### Phase 3 smoke tests
+
+```bash
+cd backend
+pytest tests/test_graph_compiles.py -v
+# Verifies the LangGraph orchestrator compiles and all 6 nodes run end-to-end
+# using pass-through stubs (no Claude / Qdrant / model loads).
+```
+
 ## Build phases
 
 This project is being built in phases. Current status:
 
 - [x] **Phase 1** — Scaffolding (folder structure, configs, stubs, manifests)
 - [x] **Phase 2** — Auth + DB (Google OAuth, user/case/audit_log tables, login UI)
-- [ ] **Phase 3** — Core agent infrastructure (LangGraph state, Claude wrapper, base agent)
+- [x] **Phase 3** — Core agent infrastructure (LangGraph state, Claude wrapper, base agent, embeddings, Qdrant, orchestrator skeleton, smoke tests)
 - [ ] **Phase 4** — Individual agents (Classifier → KYC → Claims → Policy RAG → Fraud → Orchestrator)
 - [ ] **Phase 5** — Ingestion API + UI (upload, dashboard, case detail, polling)
 - [ ] **Phase 6** — Observability + OpenShift deployment
