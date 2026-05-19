@@ -1,0 +1,39 @@
+# Optional: restricts pod-to-pod traffic inside the namespace.
+# Apply only after verifying connectivity works without it.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny
+  namespace: medishield
+spec:
+  podSelector: {}
+  policyTypes: [Ingress]
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: frontend-to-backend
+  namespace: medishield
+spec:
+  podSelector:
+    matchLabels: { app: backend }
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels: { app: frontend }
+      ports:
+        - { protocol: TCP, port: 8000 }
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: backend-to-data
+  namespace: medishield
+spec:
+  podSelector:
+    matchExpressions:
+      - { key: app, operator: In, values: [mysql, qdrant] }
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels: { app: backend }

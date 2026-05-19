@@ -1,0 +1,61 @@
+services:
+  mysql:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-dev}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-medishield}
+      MYSQL_USER: ${MYSQL_USER:-medishield}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-dev}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p${MYSQL_ROOT_PASSWORD:-dev}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  qdrant:
+    image: qdrant/qdrant:latest
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    volumes:
+      - qdrant_data:/qdrant/storage
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Containerfile
+    ports:
+      - "8000:8000"
+    env_file: .env
+    environment:
+      MYSQL_URL: mysql+pymysql://${MYSQL_USER:-medishield}:${MYSQL_PASSWORD:-dev}@mysql:3306/${MYSQL_DATABASE:-medishield}
+      QDRANT_URL: http://qdrant:6333
+    depends_on:
+      mysql:
+        condition: service_healthy
+      qdrant:
+        condition: service_started
+    volumes:
+      - ./backend/app:/app/app
+      - ./uploads:/app/uploads
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Containerfile
+    ports:
+      - "3000:3000"
+    env_file: .env
+    environment:
+      NEXT_PUBLIC_API_BASE_URL: http://localhost:8000/api/v1
+    depends_on:
+      - backend
+
+volumes:
+  mysql_data:
+  qdrant_data:

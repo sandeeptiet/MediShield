@@ -1,0 +1,46 @@
+# --- Secrets ---
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+.python-version
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+dist/
+build/
+
+# --- Node / Next.js ---
+node_modules/
+.next/
+out/
+.turbo/
+*.log
+npm-debug.log*
+
+# --- IDE / OS ---
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# --- Local data ---
+qdrant_storage/
+mysql_data/
+uploads/
+*.sqlite
+*.db
+
+# --- LangSmith / model caches ---
+.langsmith/
+.cache/
+~/.cache/huggingface/

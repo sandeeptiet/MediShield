@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+  namespace: medishield
+  labels: { app: frontend }
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: frontend }
+  template:
+    metadata:
+      labels: { app: frontend }
+    spec:
+      containers:
+        - name: frontend
+          image: image-registry.openshift-image-registry.svc:5000/medishield/frontend:latest
+          ports:
+            - containerPort: 3000
+              name: http
+          env:
+            - name: NEXT_PUBLIC_API_BASE_URL
+              value: "https://backend-medishield.apps-crc.testing/api/v1"
+            - name: NEXTAUTH_URL
+              value: "https://frontend-medishield.apps-crc.testing"
+            - name: GOOGLE_CLIENT_ID
+              valueFrom: { secretKeyRef: { name: medishield-secrets, key: GOOGLE_CLIENT_ID } }
+            - name: GOOGLE_CLIENT_SECRET
+              valueFrom: { secretKeyRef: { name: medishield-secrets, key: GOOGLE_CLIENT_SECRET } }
+            - name: NEXTAUTH_SECRET
+              valueFrom: { secretKeyRef: { name: medishield-secrets, key: NEXTAUTH_SECRET } }
+          resources:
+            requests: { memory: "256Mi", cpu: "100m" }
+            limits:   { memory: "512Mi", cpu: "500m" }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend
+  namespace: medishield
+spec:
+  selector: { app: frontend }
+  ports:
+    - { name: http, port: 3000, targetPort: 3000 }
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: frontend
+  namespace: medishield
+spec:
+  to:
+    kind: Service
+    name: frontend
+  port:
+    targetPort: http
+  tls:
+    termination: edge

@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: medishield-config
+  namespace: medishield
+data:
+  ANTHROPIC_MODEL: "claude-sonnet-4-6"
+  LANGSMITH_TRACING: "true"
+  LANGSMITH_PROJECT: "medishield-prod"
+  QDRANT_URL: "http://qdrant:6333"
+  QDRANT_COLLECTION: "policy_chunks"
+  MYSQL_URL: "mysql+pymysql://medishield@mysql:3306/medishield"
+  LOG_LEVEL: "INFO"
+  CORS_ORIGINS: "https://frontend-medishield.apps-crc.testing"
+  UPLOAD_DIR: "/app/uploads"
+  BACKEND_HOST: "0.0.0.0"
+  BACKEND_PORT: "8000"
+  JWT_ALGORITHM: "HS256"
+  JWT_EXPIRE_HOURS: "12"
