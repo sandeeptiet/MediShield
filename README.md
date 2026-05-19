@@ -118,8 +118,22 @@ cd frontend && npm install && npm run dev
 ```bash
 cd backend
 pytest tests/test_graph_compiles.py -v
-# Verifies the LangGraph orchestrator compiles and all 6 nodes run end-to-end
-# using pass-through stubs (no Claude / Qdrant / model loads).
+# Verifies the LangGraph wires together — graph compiles, singleton holds,
+# all 6 nodes present.
+```
+
+### Phase 4 — ingest policies and exercise the real agents
+
+```bash
+# Ingest a folder of policy PDFs into Qdrant (Docling → Qwen3 → Qdrant)
+cd backend
+python -m scripts.ingest_policies ../sample_policies/
+
+# Run the full agent unit-test suite (all external services mocked)
+pytest tests/test_agents.py -v
+# Verifies per-agent contracts: ClassifierAgent / KYCAgent / ClaimsAgent /
+# PolicyAgent / FraudAgent. Plus a graph-level smoke test that walks one
+# happy-path case end-to-end → APPROVE.
 ```
 
 ## Build phases
@@ -129,9 +143,9 @@ This project is being built in phases. Current status:
 - [x] **Phase 1** — Scaffolding (folder structure, configs, stubs, manifests)
 - [x] **Phase 2** — Auth + DB (Google OAuth, user/case/audit_log tables, login UI)
 - [x] **Phase 3** — Core agent infrastructure (LangGraph state, Claude wrapper, base agent, embeddings, Qdrant, orchestrator skeleton, smoke tests)
-- [ ] **Phase 4** — Individual agents (Classifier → KYC → Claims → Policy RAG → Fraud → Orchestrator)
-- [ ] **Phase 5** — Ingestion API + UI (upload, dashboard, case detail, polling)
-- [ ] **Phase 6** — Observability + OpenShift deployment
+- [x] **Phase 4** — Real agents (Classifier, KYC + ELA tamper, Claims with ICD/CPT/NPI validation, agentic Policy RAG, IsolationForest Fraud)
+- [x] **Phase 5** — Ingestion API + UI (upload endpoint, case list/detail/override, dashboard with polling, agent-output panels, ADMIN override form)
+- [x] **Phase 6** — Observability + OpenShift deployment (HTTP latency middleware, real /readyz, non-root Containerfile, OpenShift manifests with PVCs + initContainer, CRC deploy script)
 
 ## License
 

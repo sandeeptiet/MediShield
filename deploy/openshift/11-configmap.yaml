@@ -11,7 +11,7 @@ data:
   QDRANT_COLLECTION: "policy_chunks"
   MYSQL_URL: "mysql+pymysql://medishield@mysql:3306/medishield"
   LOG_LEVEL: "INFO"
-  CORS_ORIGINS: "https://frontend-medishield.apps-crc.testing"
+  CORS_ORIGINS: "https://frontend-medishield.apps-crc.testing,http://frontend-medishield.apps-crc.testing"
   UPLOAD_DIR: "/app/uploads"
   BACKEND_HOST: "0.0.0.0"
   BACKEND_PORT: "8000"

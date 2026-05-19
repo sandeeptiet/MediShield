@@ -6,15 +6,21 @@ Flow:
       ↓
     classifier
       ↓
-    ┌─────────┬─────────┬─────────┐
-    │   kyc   │ claims  │ policy  │   (parallel — LangGraph fans out)
-    └─────────┴─────────┴─────────┘
-      ↓
-    fraud
-      ↓
-    decide                            (Orchestrator aggregation)
-      ↓
-    END
+    ┌─────────┬─────────┐
+    │   kyc   │ claims  │      (parallel — independent of each other)
+    └─────────┴────┬────┘
+                   ↓
+                policy            (depends on claims.cpt_codes — agentic RAG)
+                   ↓
+                fraud             (waits for kyc + policy)
+                   ↓
+                decide            (Orchestrator aggregation)
+                   ↓
+                  END
+
+Why Policy runs AFTER Claims (not in parallel with it): Policy RAG forms its
+retrieval query from the CPT/ICD codes that Claims extracts. That structured
+upstream signal is what makes this "agentic RAG" rather than plain RAG.
 
 Aggregation rules in `decide_node`:
     APPROVE   : KYC pass + claim valid + covered + fraud < 0.3
@@ -113,17 +119,18 @@ def build_graph():
     # Linear start → classifier
     builder.add_edge(START, "classifier")
 
-    # Classifier fans out to three parallel agents
+    # Classifier fans out — kyc and claims are independent and run in parallel
     builder.add_edge("classifier", "kyc")
     builder.add_edge("classifier", "claims")
-    builder.add_edge("classifier", "policy")
 
-    # Each of the three feeds into fraud (LangGraph joins them automatically)
+    # Policy depends on Claims (needs cpt_codes / icd10_codes for retrieval).
+    builder.add_edge("claims", "policy")
+
+    # Fraud waits for both KYC and Policy (which itself waited for Claims).
     builder.add_edge("kyc", "fraud")
-    builder.add_edge("claims", "fraud")
     builder.add_edge("policy", "fraud")
 
-    # Then aggregate + finish
+    # Aggregate + finish.
     builder.add_edge("fraud", "decide")
     builder.add_edge("decide", END)
 

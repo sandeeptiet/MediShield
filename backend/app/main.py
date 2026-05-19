@@ -1,13 +1,16 @@
 """MediShield FastAPI entrypoint."""
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from prometheus_client import make_asgi_app
+from sqlalchemy.orm import Session
 
 from app.api.v1.router import api_router
+from app.database import get_db
 from app.config import settings
 from app.core.logging import configure_logging, get_logger
+from app.core.middleware import PrometheusMiddleware
 from app.core.tracing import configure_tracing
 
 configure_logging()
@@ -30,6 +33,7 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+app.add_middleware(PrometheusMiddleware)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins_list,
@@ -48,6 +52,7 @@ def healthz() -> dict[str, str]:
 
 
 @app.get("/readyz", tags=["health"])
-def readyz() -> dict[str, str]:
-    # TODO (Phase 2+): verify DB + Qdrant + Anthropic reachability.
-    return {"status": "ready"}
+def readyz(db: Session = Depends(get_db)) -> dict[str, object]:
+    """Top-level readiness probe — matches the Kubernetes probe path."""
+    from app.api.v1.endpoints.health import ready as ready_impl
+    return ready_impl(db=db)
